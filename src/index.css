@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at 20% -10%, #0e1b30 0%, #070b14 55%);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #e6edf6;
+}
+
+/* Hide scrollbars inside the phone but keep scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@layer components {
+  .card {
+    @apply bg-ink-700/70 backdrop-blur rounded-3xl border border-white/5 shadow-card;
+  }
+  .chip {
+    @apply px-3 py-1.5 rounded-full text-xs font-medium border border-white/10 bg-white/5;
+  }
+  .btn-primary {
+    @apply bg-accent text-ink-900 font-semibold rounded-2xl py-3.5 active:scale-[0.98] transition-transform shadow-glow;
+  }
+  .btn-ghost {
+    @apply bg-white/5 text-white font-medium rounded-2xl py-3.5 active:scale-[0.98] transition-transform border border-white/10;
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
