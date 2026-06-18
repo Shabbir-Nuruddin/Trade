@@ -7,8 +7,8 @@ export interface AriaReply {
   source: 'live' | 'scripted'
 }
 
-const KEY = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
-const MODEL = (import.meta.env.VITE_ANTHROPIC_MODEL as string) || 'claude-haiku-4-5'
+const KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
+const MODEL = (import.meta.env.VITE_GEMINI_MODEL as string) || 'gemini-2.0-flash'
 
 const SYSTEM = `You are Aria, a calm, plain-spoken AI investing co-pilot inside a mobile app for first-time investors.
 Your job is to make people BETTER investors, not faster traders. Always:
@@ -18,34 +18,34 @@ Your job is to make people BETTER investors, not faster traders. Always:
 - Never give a guaranteed-return promise. You are educational, not a licensed advisor.
 Available assets you can reference: ${ASSETS.map((a) => `${a.symbol} (${a.name}, ${a.risk} risk)`).join(', ')}.`
 
-/** Try the live Claude API; fall back to scripted on any failure. */
+/** Try the live Gemini API; fall back to scripted on any failure. */
 export async function askAria(prompt: string, history: { role: string; text: string }[] = []): Promise<AriaReply> {
   if (KEY) {
     try {
       const res = await withTimeout(
-        fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-api-key': KEY,
-            'anthropic-version': '2023-06-01',
-            'anthropic-dangerous-direct-browser-access': 'true',
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${KEY}`,
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              system_instruction: { parts: [{ text: SYSTEM }] },
+              contents: [
+                ...history.map((h) => ({
+                  role: h.role === 'aria' ? 'model' : 'user',
+                  parts: [{ text: h.text }],
+                })),
+                { role: 'user', parts: [{ text: prompt }] },
+              ],
+              generationConfig: { maxOutputTokens: 400, temperature: 0.7 },
+            }),
           },
-          body: JSON.stringify({
-            model: MODEL,
-            max_tokens: 400,
-            system: SYSTEM,
-            messages: [
-              ...history.map((h) => ({ role: h.role === 'aria' ? 'assistant' : 'user', content: h.text })),
-              { role: 'user', content: prompt },
-            ],
-          }),
-        }),
+        ),
         9000,
       )
       if (res.ok) {
         const data = await res.json()
-        const text = data?.content?.[0]?.text?.trim()
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
         if (text) return { text, basket: detectBasket(prompt), source: 'live' }
       }
     } catch {
@@ -74,7 +74,10 @@ export function scripted(promptRaw: string): AriaReply {
   const wantsClean = /(clean|green|solar|wind|esg|climate|energy)/.test(p)
   const wantsCrypto = /(crypto|bitcoin|btc|eth)/.test(p)
   const wantsGrowth = /(grow|growth|aggressive|tech|ai)/.test(p)
-  const isBasketAsk = /(invest|put|build|portfolio|allocate|basket|where|start|recommend|suggest)/.test(p) && (amount || wantsSafe || wantsClean || wantsCrypto || wantsGrowth)
+  const hasGoal = wantsSafe || wantsClean || wantsCrypto || wantsGrowth
+  const askVerb = /(invest|put|build|portfolio|allocate|basket|where|start|recommend|suggest|have|want|spare|spend)/.test(p)
+  // A dollar amount + any goal is a plan request; or an explicit ask verb + a goal/amount.
+  const isBasketAsk = (amount != null && hasGoal) || (askVerb && (amount != null || hasGoal))
 
   if (isBasketAsk) {
     let basket: { assetId: string; weight: number }[]
@@ -85,6 +88,9 @@ export function scripted(promptRaw: string): AriaReply {
     } else if (wantsCrypto) {
       basket = [{ assetId: 'voo', weight: 60 }, { assetId: 'btc', weight: 25 }, { assetId: 'eth', weight: 15 }]
       style = 'mostly a broad index with a small, sensible crypto slice — crypto is high risk, so we keep it minor'
+    } else if (wantsSafe) {
+      basket = [{ assetId: 'voo', weight: 50 }, { assetId: 'vt', weight: 25 }, { assetId: 'vbtlx', weight: 25 }]
+      style = 'a calm, well-diversified mix built to grow steadily over the years while keeping risk low'
     } else if (wantsGrowth) {
       basket = [{ assetId: 'voo', weight: 45 }, { assetId: 'msft', weight: 25 }, { assetId: 'nvda', weight: 20 }, { assetId: 'vbtlx', weight: 10 }]
       style = 'growth-leaning with AI leaders, cushioned by an index fund and a little bonds'

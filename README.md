@@ -45,14 +45,17 @@ is designed to build conviction and understanding, not dopamine.
 
 ## The AI engine (hybrid, demo-safe)
 
-Aria runs on the **Claude API** when a key is provided, and falls back to a high-quality
+Aria runs on the **Gemini API** when a key is provided, and falls back to a high-quality
 **scripted engine** otherwise — so a live demo *never* fails on stage.
 
 ```bash
 cp .env.example .env.local   # then add your key (optional)
-# VITE_ANTHROPIC_API_KEY=sk-ant-...
-# VITE_ANTHROPIC_MODEL=claude-haiku-4-5
+# VITE_GEMINI_API_KEY=...        get one at https://aistudio.google.com/apikey
+# VITE_GEMINI_MODEL=gemini-2.0-flash
 ```
+
+On **Vercel**, add `VITE_GEMINI_API_KEY` (and optionally `VITE_GEMINI_MODEL`) as an
+Environment Variable, then redeploy.
 
 Without a key the app is fully functional in **Demo mode** (offline scripted answers for
 the key flows: build-a-basket, explain-an-asset, calm-me-down).
@@ -68,7 +71,7 @@ npm run build    # production build
 ## Tech
 
 React + TypeScript · Vite · Tailwind CSS · Zustand (live portfolio state) · Framer Motion ·
-SVG charts (no chart library) · Claude API.
+SVG charts (no chart library) · Gemini API.
 
 ## The 90-second demo
 
