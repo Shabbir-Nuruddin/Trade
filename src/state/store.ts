@@ -9,12 +9,14 @@ export interface ChatMessage {
 }
 
 interface AppState {
+  name: string
   cash: number
   holdings: Holding[]
   watchlist: string[]
   lessonsDone: string[]
   chat: ChatMessage[]
 
+  setName: (name: string) => void
   buy: (assetId: string, dollars: number) => void
   sell: (assetId: string, dollars: number) => void
   toggleWatch: (assetId: string) => void
@@ -35,12 +37,25 @@ const initialHoldings: Holding[] = [
   { assetId: 'icln', shares: 60, avgCost: 15.1 },
 ]
 
+const savedName = typeof localStorage !== 'undefined' ? localStorage.getItem('aria.name') || '' : ''
+
 export const useStore = create<AppState>((set, get) => ({
+  name: savedName,
   cash: 2500,
   holdings: initialHoldings,
   watchlist: ['nvda', 'tsla', 'btc', 'msft'],
   lessonsDone: ['compounding'],
   chat: [],
+
+  setName: (name) => {
+    const clean = name.trim().slice(0, 24)
+    try {
+      localStorage.setItem('aria.name', clean)
+    } catch {
+      /* ignore */
+    }
+    set({ name: clean })
+  },
 
   buy: (assetId, dollars) => {
     const a = assetById(assetId)

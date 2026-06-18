@@ -8,12 +8,18 @@ import { Term } from '../components/MicroLesson'
 
 export default function Home() {
   const nav = useNavigate()
+  const name = useStore((s) => s.name)
+  const setName = useStore((s) => s.setName)
   const netWorth = useStore((s) => s.netWorth())
   const dayPct = useStore((s) => s.dayChangePct())
   const watchlist = useStore((s) => s.watchlist)
   const holdings = useStore((s) => s.holdings)
   const up = dayPct >= 0
   const dayValue = (netWorth * dayPct) / 100
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
+  const firstName = name.split(' ')[0] || 'there'
 
   // Build a smooth net-worth curve for the hero chart.
   const series = Array.from({ length: 30 }, (_, i) => {
@@ -25,12 +31,16 @@ export default function Home() {
     <div className="px-4 pt-12 sm:pt-8 space-y-5">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-white/50 text-sm">Good morning, Shabbir 👋</p>
+          <p className="text-white/50 text-sm">{greeting}, {firstName} 👋</p>
           <h1 className="text-xl font-bold">Your money</h1>
         </div>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-soft to-accent grid place-items-center font-bold text-ink-900">
-          S
-        </div>
+        <button
+          onClick={() => { if (confirm('Switch user? This returns to the welcome screen.')) setName('') }}
+          title="Switch user"
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-soft to-accent grid place-items-center font-bold text-ink-900 uppercase active:scale-95 transition"
+        >
+          {firstName.charAt(0) || 'A'}
+        </button>
       </header>
 
       {/* Hero portfolio card */}

@@ -2,6 +2,8 @@ import { Routes, Route, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { BottomNav } from './components/BottomNav'
 import { AriaFab } from './components/AriaFab'
+import { useStore } from './state/store'
+import Welcome from './screens/Welcome'
 import Home from './screens/Home'
 import Discover from './screens/Discover'
 import AssetDetail from './screens/AssetDetail'
@@ -42,6 +44,7 @@ function AnimatedRoutes() {
 }
 
 export default function App() {
+  const name = useStore((s) => s.name)
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-0 sm:p-6">
       {/* Phone frame */}
@@ -49,9 +52,15 @@ export default function App() {
         {/* notch */}
         <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black/80 rounded-b-2xl z-40" />
         <div className="relative h-full">
-          <AnimatedRoutes />
-          <AriaFab />
-          <BottomNav />
+          {!name ? (
+            <Welcome />
+          ) : (
+            <>
+              <AnimatedRoutes />
+              <AriaFab />
+              <BottomNav />
+            </>
+          )}
         </div>
       </div>
       {/* Desktop hint */}

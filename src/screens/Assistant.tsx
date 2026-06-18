@@ -19,9 +19,11 @@ export default function Assistant() {
   const chat = useStore((s) => s.chat)
   const pushChat = useStore((s) => s.pushChat)
   const buy = useStore((s) => s.buy)
+  const name = useStore((s) => s.name)
+  const firstName = name.split(' ')[0]
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
-  const [live, setLive] = useState(!!import.meta.env.VITE_ANTHROPIC_API_KEY)
+  const [live, setLive] = useState(!!import.meta.env.VITE_GEMINI_API_KEY)
   const endRef = useRef<HTMLDivElement>(null)
 
   async function send(text: string) {
@@ -41,7 +43,7 @@ export default function Assistant() {
     if (chat.length === 0) {
       pushChat({
         role: 'aria',
-        text: 'Hi, I’m Aria 👋 your investing co-pilot. I can explain any investment, build a plan for your goals in plain English, or sanity-check a trade. What’s on your mind?',
+        text: `Hi ${firstName || 'there'}, I’m Aria 👋 your investing co-pilot. I can explain any investment, build a plan for your goals in plain English, or sanity-check a trade. What’s on your mind?`,
       })
     }
     const p = (loc.state as { prompt?: string })?.prompt
